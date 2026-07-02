@@ -2,6 +2,8 @@ import express from "express";
 import fs from "fs";
 import multer from "multer";
 import sharp from "sharp";
+import path from "path";
+import { fileURLToPath } from "url";
 import { createWorker, PSM } from "tesseract.js";
 import {
   buildSQLCandidates,
@@ -776,7 +778,7 @@ app.post("/api/generate-quiz", async (req, res) => {
   res.json({ provider: "local", fallback: true, questions: [], errors: [...new Set(errors)] });
 });
 
-const port = Number(process.env.API_PORT || 5174);
+const port = Number(process.env.PORT || process.env.API_PORT || 5174);
 
 // ── Gemini Vision: PDF 페이지 이미지에서 테이블 + SQL 추출 ──────────────────
 async function extractTableAndSqlWithGemini(base64Image, mimeType = "image/png") {
@@ -853,6 +855,18 @@ app.post("/api/extract-table-sql", upload.single("image"), async (req, res) => {
   }
 });
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const distPath = path.join(__dirname, "dist");
+
+if (fs.existsSync(distPath)) {
+  app.use(express.static(distPath));
+
+  app.get(/^(?!\/api).*/, (_req, res) => {
+    res.sendFile(path.join(distPath, "index.html"));
+  });
+}
+
 app.listen(port, "0.0.0.0", () => {
-  console.log(`QueryNote API ready on http://localhost:${port}`);
+  console.log(`QueryNote ready on http://localhost:${port}`);
 });
