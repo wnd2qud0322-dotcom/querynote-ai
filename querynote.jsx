@@ -1551,8 +1551,9 @@ function PDFTab({rl,notes,setNotes,setSql,book,pdfUrl,pi,setPi}){
           <p style={{fontSize:13,lineHeight:1.8,color:C.text,margin:"0 0 10px"}}>{desc[rl]}</p>
           <div style={{background:C.aL,borderRadius:7,padding:"8px 11px",fontSize:12,color:C.navy,border:`1px solid ${C.soft}`}}>ℹ️ {hint[rl]}</div>
           {(()=>{
-            const examKey=`exam:${key}`;
-            const isMarked=!!notes[examKey];
+            const bookKey = book || "default";
+            const examKey = `exam:${bookKey}:${currentPage}`;
+            const isMarked = !!notes[examKey];
             return(
               <button onClick={()=>{
                 setNotes(prev=>{
@@ -1560,7 +1561,13 @@ function PDFTab({rl,notes,setNotes,setSql,book,pdfUrl,pi,setPi}){
                   if(n[examKey]){
                     delete n[examKey]; // 이미 눌렸으면 해제
                   } else {
-                    n[examKey]={type:"exam",page:currentPage,title:cur.title,date:new Date().toLocaleDateString("ko-KR"),book:book||"unknown"};
+                    n[examKey] = {
+                      type: "exam",
+                      page: currentPage,
+                      title: cur.title,
+                      date: new Date().toLocaleDateString("ko-KR"),
+                      book: bookKey
+                 };
                   }
                   try{window.storage.set("notes",JSON.stringify(n));}catch(e){}
                   return n;
